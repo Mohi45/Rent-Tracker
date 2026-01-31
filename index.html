@@ -6,15 +6,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PG Rent Tracker</title>
 
-    <link rel="manifest" href="manifest.json" />
     <link rel="stylesheet" href="style.css" />
 
     <!-- Cropper -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
-    <!-- Charts -->
+    <!-- Chart -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Firebase (REQUIRED) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 
 <body>
@@ -22,7 +25,7 @@
     <!-- LOGIN -->
     <div id="loginScreen" class="login">
         <h2>🔐 Admin Login</h2>
-        <input type="password" id="pin" placeholder="Enter PIN" />
+        <input type="password" id="pin" placeholder="Enter PIN">
         <button onclick="login()">Login</button>
     </div>
 
@@ -45,21 +48,15 @@
             <input id="roomInput" placeholder="Room No">
             <input id="phoneInput" placeholder="WhatsApp Number">
             <input id="rentInput" type="number" placeholder="Monthly Rent">
-            <input id="dueDateInput" type="date">
+            <input id="dueDateInput" type="number" min="1" max="31" placeholder="Due Day">
             <input type="file" id="photoInput" accept="image/*">
             <button onclick="addTenant()">➕ Add Tenant</button>
         </section>
 
-        <!-- CHARTS -->
-        <section style="height:220px;padding:10px">
+        <section style="padding:10px">
             <canvas id="chart"></canvas>
         </section>
 
-        <section style="height:240px;padding:10px">
-            <canvas id="historyChart"></canvas>
-        </section>
-
-        <!-- TENANTS -->
         <section id="tenantList" class="cards"></section>
 
         <footer class="summary">
@@ -68,7 +65,7 @@
         </footer>
     </div>
 
-    <!-- IMAGE CROP -->
+    <!-- CROP MODAL (ONLY ONE) -->
     <div id="cropModal" class="crop-modal">
         <div class="crop-box">
             <img id="cropImage">

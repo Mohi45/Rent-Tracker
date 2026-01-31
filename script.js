@@ -1,21 +1,22 @@
-/************ CONFIG ************/
+/********** CONSTANTS **********/
 const ADMIN_PIN = "1234";
 const DEFAULT_AVATAR =
     "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSIzNSIgcj0iMTgiIGZpbGw9IiNjY2MiLz48cmVjdCB4PSIyMCIgeT0iNjAiIHdpZHRoPSI2MCIgaGVpZ2h0PSIzMCIgZmlsbD0iI2NjYyIvPjwvc3ZnPg==";
-
-/************ GLOBALS ************/
-let data = JSON.parse(localStorage.getItem("pgData")) || [];
+/********** STATE **********/
+let data = [];
 let ACTIVE_MONTH = localStorage.getItem("activeMonth") || getCurrentMonthKey();
 let chart = null;
-let historyChart = null;
 let cropper = null;
 let croppedImage = null;
+let imageReady = false;
 
-/************ ELEMENTS ************/
+/********** DOM **********/
+const tenantList = document.getElementById("tenantList");
 const chartEl = document.getElementById("chart");
-const historyChartEl = document.getElementById("historyChart");
+const pin = document.getElementById("pin");
+const monthSelector = document.getElementById("monthSelector");
 
-/************ DATE HELPERS ************/
+/********** DATE HELPERS **********/
 function getCurrentMonthKey() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -23,7 +24,10 @@ function getCurrentMonthKey() {
 
 function getMonthName(key) {
     const [y, m] = key.split("-");
-    return new Date(y, m - 1).toLocaleString("default", { month: "short", year: "numeric" });
+    return new Date(y, m - 1).toLocaleString("default", {
+        month: "short",
+        year: "numeric"
+    });
 }
 
 function getMonthRange(key) {
@@ -31,82 +35,139 @@ function getMonthRange(key) {
     return { start: new Date(y, m - 1, 1), end: new Date(y, m, 0) };
 }
 
-/************ LOGIN ************/
+function getDueDateForMonth(t, monthKey) {
+    const [y, m] = monthKey.split("-");
+    return new Date(y, m - 1, t.dueDay || 1);
+}
+
+/********** FIREBASE **********/
+const firebaseConfig = {
+    apiKey: "AIzaSyDAY3hRdAnDO9A-P6Krm_2q52idGqKhAPQ",
+    authDomain: "renttracker-bd234.firebaseapp.com",
+    databaseURL: "https://renttracker-bd234-default-rtdb.firebaseio.com",
+    projectId: "renttracker-bd234",
+    storageBucket: "renttracker-bd234.appspot.com",
+    messagingSenderId: "669597729141",
+    appId: "1:669597729141:web:0d674323c21599e0c6533c"
+};
+
+firebase.initializeApp(firebaseConfig);
+const dbRef = firebase.database().ref("pgData");
+
+dbRef.on("value", snap => {
+    data = snap.val() || [];
+    render();
+});
+
+/********** LOGIN **********/
 function login() {
     if (pin.value === ADMIN_PIN) {
         sessionStorage.setItem("login", "1");
-        loginScreen.style.display = "none";
-        app.style.display = "block";
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("app").style.display = "block";
         render();
     } else alert("Wrong PIN");
 }
+
 if (sessionStorage.getItem("login")) login();
 
-/************ THEME ************/
+/********** THEME **********/
 function toggleTheme() {
     document.body.classList.toggle("dark");
 }
 
-/************ IMAGE CROP ************/
-photoInput.addEventListener("change", e => {
+/********** IMAGE CROP **********/
+document.getElementById("photoInput").addEventListener("change", e => {
     const file = e.target.files[0];
     if (!file) return;
 
+    imageReady = false;
+    croppedImage = null;
+
     const reader = new FileReader();
     reader.onload = () => {
-        cropImage.src = reader.result;
-        cropModal.style.display = "flex";
+        document.getElementById("cropImage").src = reader.result;
+        document.getElementById("cropModal").style.display = "block";
+
         if (cropper) cropper.destroy();
-        cropper = new Cropper(cropImage, { aspectRatio: 1 });
+        cropper = new Cropper(document.getElementById("cropImage"), {
+            aspectRatio: 1,
+            viewMode: 1
+        });
     };
     reader.readAsDataURL(file);
 });
 
 function saveCropped() {
-    croppedImage = cropper.getCroppedCanvas({ width: 300, height: 300 }).toDataURL();
+    croppedImage = cropper
+        .getCroppedCanvas({ width: 300, height: 300 })
+        .toDataURL();
+
+    imageReady = true;
+
     cropper.destroy();
     cropper = null;
-    cropModal.style.display = "none";
+    document.getElementById("cropModal").style.display = "none";
 }
 
 function cancelCrop() {
-    cropModal.style.display = "none";
+    imageReady = false;
+    croppedImage = null;
+    document.getElementById("cropModal").style.display = "none";
     if (cropper) cropper.destroy();
 }
 
-/************ ADD TENANT ************/
+/********** ADD TENANT **********/
 function addTenant() {
     if (!nameInput.value || !dueDateInput.value) {
         alert("Fill all fields");
         return;
     }
 
-    data.push({
+    if (!croppedImage) {
+        alert("Please crop the image before saving");
+        return;
+    }
+
+    const tenant = {
         name: nameInput.value,
         room: roomInput.value,
         phone: phoneInput.value,
         rent: +rentInput.value,
-        dueDay: +dueDateInput.value, // only day (1-28)
-        photo: croppedImage || DEFAULT_AVATAR,
+        dueDay: +dueDateInput.value,
+        photo: croppedImage,
         history: {}
-    });
+    };
 
-    nameInput.value = roomInput.value = phoneInput.value = rentInput.value = dueDateInput.value = "";
+    data.push(tenant);
+    dbRef.set(data);
+
+    nameInput.value =
+        roomInput.value =
+        phoneInput.value =
+        rentInput.value =
+        dueDateInput.value =
+        "";
+
     croppedImage = null;
+    imageReady = false;
 
-    save();
     render();
 }
 
-/************ MONTH ************/
+/********** MONTH SELECT **********/
 function populateMonthSelector() {
     monthSelector.innerHTML = "";
     const y = new Date().getFullYear();
+
     for (let i = 0; i < 12; i++) {
         const key = `${y}-${String(i + 1).padStart(2, "0")}`;
         const o = document.createElement("option");
         o.value = key;
-        o.textContent = new Date(y, i).toLocaleString("default", { month: "short", year: "numeric" });
+        o.textContent = new Date(y, i).toLocaleString("default", {
+            month: "short",
+            year: "numeric"
+        });
         if (key === ACTIVE_MONTH) o.selected = true;
         monthSelector.appendChild(o);
     }
@@ -118,136 +179,127 @@ function changeMonth(m) {
     render();
 }
 
-/************ PAYMENT CALCULATION ************/
-function getDueDateForMonth(t, monthKey) {
-    const [y, m] = monthKey.split("-");
-    return new Date(y, m - 1, t.dueDay);
-}
-
+/********** PAYMENT **********/
 function isPaid(t) {
     return t.history?.[ACTIVE_MONTH]?.status === "Paid";
 }
 
 function getTotal(t) {
     let total = t.rent;
-
     if (isPaid(t)) return total;
 
-    const dueDate = getDueDateForMonth(t, ACTIVE_MONTH);
+    const due = getDueDateForMonth(t, ACTIVE_MONTH);
     const today = new Date();
+    if (today < due) return total;
 
-    // If month not yet due
-    if (today < dueDate) return total;
-
-    const { end } = getMonthRange(ACTIVE_MONTH);
-    const calcTill = today < end ? today : end;
-
-    const daysLate = Math.floor((calcTill - dueDate) / 86400000);
-    if (daysLate > 0) total += daysLate * 10; // ₹10/day late fee
+    const daysLate = Math.floor((today - due) / 86400000);
+    if (daysLate > 0) total += daysLate * 10;
 
     return total;
 }
 
 function markPaid(i) {
-    data[i].history[ACTIVE_MONTH] = { paid: getTotal(data[i]), status: "Paid" };
-    save();
+    if (!data[i].history) {
+        data[i].history = {};
+    }
+
+    data[i].history[ACTIVE_MONTH] = {
+        paid: getTotal(data[i]),
+        status: "Paid"
+    };
+
+    dbRef.set(data);
     render();
 }
 
-/************ WHATSAPP ************/
+
+/********** WHATSAPP **********/
 function sendWhatsApp(i) {
     const t = data[i];
+    if (!t.phone) return alert(`No phone for ${t.name}`);
+
+    const phone = t.phone.replace(/\D/g, "");
     const msg = encodeURIComponent(
-        `Hello ${t.name},\n\n` +
-        `This is a friendly reminder that your PG rent for ${getMonthName(ACTIVE_MONTH)} is ₹${getTotal(t)}.\n` +
-        `Kindly ensure the payment is made by the due date to avoid any late fees.\n\n` +
-        `Thank you for your prompt attention.\n\n` +
-        `- The Safachatt Group`
+        `Hello ${t.name}, PG rent for ${getMonthName(
+            ACTIVE_MONTH
+        )} is ₹${getTotal(t)}`
     );
 
-    window.open(`https://wa.me/${t.phone}?text=${msg}`);
+    window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
 }
 
-/************ DELETE ************/
+/********** DELETE **********/
 function removeTenant(i) {
-    if (confirm("Delete tenant?")) {
-        data.splice(i, 1);
-        save();
-        render();
+    const enteredPin = prompt("Enter admin PIN to delete tenant");
+
+    if (enteredPin === null) return; // user cancelled
+
+    if (enteredPin !== ADMIN_PIN) {
+        alert("Wrong PIN. Deletion cancelled.");
+        return;
     }
+
+    if (!confirm("Are you sure you want to delete this tenant?")) return;
+
+    data.splice(i, 1);
+    dbRef.set(data);
+    render();
 }
 
-/************ RENDER ************/
+
+/********** RENDER **********/
 function render() {
     tenantList.innerHTML = "";
-    let paid = 0, unpaid = 0;
+    let paid = 0,
+        unpaid = 0;
 
     data.forEach((t, i) => {
         const total = getTotal(t);
-        isPaid(t) ? (paid += total) : (unpaid += total);
+        if (isPaid(t)) paid += total;
+        else unpaid += total;
 
         tenantList.innerHTML += `
       <div class="card">
         <img src="${t.photo}">
         <h3>${t.name}</h3>
         <small>Room ${t.room}</small>
-        <small>Due Day: ${t.dueDay} every month</small>
-        <p><strong>₹${total}</strong></p>
-        <div class="actions">
-          ${!isPaid(t) ? `<button onclick="markPaid(${i})">✔ Paid</button>` : ""}
+        <small>Due Day: ${t.dueDay}</small>
+        <p>₹${total}</p>
+        <div>
+          ${!isPaid(t)
+                ? `<button onclick="markPaid(${i})">✔ Paid</button>`
+                : ""
+            }
           <button onclick="sendWhatsApp(${i})">📲 WhatsApp</button>
-          <button onclick="removeTenant(${i})" class="danger">🗑 Delete</button>
+          <button onclick="removeTenant(${i})">🗑 Delete</button>
         </div>
       </div>`;
     });
 
-    paidEl.textContent = paid;
-    pendingEl.textContent = unpaid;
+    document.getElementById("paidEl").textContent = paid;
+    document.getElementById("pendingEl").textContent = unpaid;
 
     drawChart(paid, unpaid);
-    drawHistoryChart();
     populateMonthSelector();
 }
 
-/************ CHARTS ************/
+/********** CHART **********/
 function drawChart(paid, unpaid) {
     if (chart) chart.destroy();
+
     chart = new Chart(chartEl, {
         type: "doughnut",
-        data: { labels: ["Paid", "Pending"], datasets: [{ data: [paid, unpaid] }] },
-        options: { responsive: true, plugins: { legend: { position: "bottom" } } }
-    });
-}
-
-function drawHistoryChart() {
-    const h = JSON.parse(localStorage.getItem("monthlyHistory")) || {};
-    const labels = Object.keys(h);
-    if (!labels.length) return;
-
-    if (historyChart) historyChart.destroy();
-    historyChart = new Chart(historyChartEl, {
-        type: "bar",
         data: {
-            labels: labels.map(getMonthName),
-            datasets: [
-                { label: "Paid", data: labels.map(m => h[m].paid) },
-                { label: "Pending", data: labels.map(m => h[m].unpaid) }
-            ]
+            labels: ["Paid", "Pending"],
+            datasets: [{ data: [paid, unpaid] }]
         },
-        options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+        options: {
+            responsive: true,
+            plugins: { legend: { position: "bottom" } }
+        }
     });
 }
 
-/************ SAVE ************/
-function save() {
-    localStorage.setItem("pgData", JSON.stringify(data));
-    const h = JSON.parse(localStorage.getItem("monthlyHistory")) || {};
-    let paid = 0, unpaid = 0;
-    data.forEach(t => (isPaid(t) ? (paid += getTotal(t)) : (unpaid += getTotal(t))));
-    h[ACTIVE_MONTH] = { paid, unpaid };
-    localStorage.setItem("monthlyHistory", JSON.stringify(h));
-}
-
-/************ INIT ************/
+/********** INIT **********/
 populateMonthSelector();
 render();

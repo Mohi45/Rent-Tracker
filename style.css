@@ -14,7 +14,6 @@
     --bg: #020617;
     --card: #1e293b;
     --text: #e5e7eb;
-    --header: #020617;
 }
 
 body {
@@ -23,14 +22,16 @@ body {
     color: var(--text);
 }
 
+/* HEADER */
 header {
     background: var(--header);
-    color: #fff;
+    color: white;
     padding: 15px;
     display: flex;
     justify-content: space-between;
 }
 
+/* FORM */
 .form {
     padding: 15px;
     display: grid;
@@ -39,7 +40,7 @@ header {
 
 .form input,
 .form button {
-    padding: 12px;
+    padding: 14px;
     font-size: 16px;
 }
 
@@ -47,9 +48,17 @@ header {
     background: #2563eb;
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
 }
 
+/* MONTH */
+.month-bar {
+    padding: 10px 15px;
+    display: flex;
+    gap: 10px;
+}
+
+/* CARDS */
 .cards {
     padding: 15px;
     display: grid;
@@ -59,111 +68,75 @@ header {
 .card {
     background: var(--card);
     padding: 15px;
-    border-radius: 10px;
-    /* square-ish, not rounded pill */
-    box-shadow: 0 4px 8px rgba(0, 0, 0, .08);
-    transition: .3s;
+    border-radius: 14px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .08);
     display: grid;
     gap: 6px;
 }
 
-
 .card img {
     width: 80px;
     height: 80px;
-    border-radius: 10px;
-    /* square avatar */
     object-fit: cover;
+    border-radius: 10px;
     margin: auto;
-    display: block;
 }
 
-.month-bar {
-    padding: 10px 15px;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.month-bar select {
-    padding: 6px;
-    border-radius: 6px;
-}
-
-
-.actions {
-    display: flex;
-    gap: 6px;
-    margin-top: 10px;
-}
-
-.actions button {
-    flex: 1;
-    padding: 8px;
-    border: none;
-    border-radius: 6px;
-}
-
-.paid {
-    color: green;
-    font-weight: bold;
-}
-
-.pending {
-    color: #f97316;
-    font-weight: bold;
-}
-
-.overdue {
-    color: #dc2626;
-    font-weight: bold;
-}
-
+/* SUMMARY */
 .summary {
     position: sticky;
     bottom: 0;
     background: var(--card);
-    padding: 10px;
+    padding: 12px;
     display: flex;
     justify-content: space-around;
     font-weight: bold;
 }
 
+/* LOGIN */
 .login {
     height: 100vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 12px;
     background: #020617;
     color: white;
+    gap: 12px;
 }
 
+/* CROP MODAL */
 .crop-modal {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, .7);
+    background: rgba(0, 0, 0, .75);
     display: none;
     justify-content: center;
     align-items: center;
-    z-index: 999;
+    z-index: 9999;
 }
 
 .crop-box {
     background: white;
-    padding: 15px;
-    border-radius: 12px;
+    padding: 16px;
+    border-radius: 14px;
     width: 90%;
     max-width: 320px;
 }
 
 .crop-box img {
-    max-width: 100%;
+    width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    border-radius: 10px;
 }
 
 .crop-box button {
     width: 100%;
-    margin-top: 8px;
-    padding: 10px;
+    margin-top: 10px;
+    padding: 12px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 8px;
 }
