@@ -86,7 +86,7 @@ function addTenant() {
         room: roomInput.value,
         phone: phoneInput.value,
         rent: +rentInput.value,
-        dueDate: dueDateInput.value,
+        dueDay: +dueDateInput.value, // only day (1-28)
         photo: croppedImage || DEFAULT_AVATAR,
         history: {}
     });
@@ -118,22 +118,33 @@ function changeMonth(m) {
     render();
 }
 
-/************ PAYMENT ************/
+/************ PAYMENT CALCULATION ************/
+function getDueDateForMonth(t, monthKey) {
+    const [y, m] = monthKey.split("-");
+    return new Date(y, m - 1, t.dueDay);
+}
+
 function isPaid(t) {
     return t.history?.[ACTIVE_MONTH]?.status === "Paid";
 }
 
 function getTotal(t) {
     let total = t.rent;
+
     if (isPaid(t)) return total;
 
-    const due = new Date(t.dueDate);
-    const { end } = getMonthRange(ACTIVE_MONTH);
-    if (end < due) return total;
+    const dueDate = getDueDateForMonth(t, ACTIVE_MONTH);
+    const today = new Date();
 
-    const today = new Date() < end ? new Date() : end;
-    const daysLate = Math.floor((today - due) / 86400000);
-    if (daysLate > 0) total += daysLate * 10;
+    // If month not yet due
+    if (today < dueDate) return total;
+
+    const { end } = getMonthRange(ACTIVE_MONTH);
+    const calcTill = today < end ? today : end;
+
+    const daysLate = Math.floor((calcTill - dueDate) / 86400000);
+    if (daysLate > 0) total += daysLate * 10; // ₹10/day late fee
+
     return total;
 }
 
@@ -147,8 +158,13 @@ function markPaid(i) {
 function sendWhatsApp(i) {
     const t = data[i];
     const msg = encodeURIComponent(
-        `Hello ${t.name}, your PG rent for ${getMonthName(ACTIVE_MONTH)} is ₹${getTotal(t)}`
+        `Hello ${t.name},\n\n` +
+        `This is a friendly reminder that your PG rent for ${getMonthName(ACTIVE_MONTH)} is ₹${getTotal(t)}.\n` +
+        `Kindly ensure the payment is made by the due date to avoid any late fees.\n\n` +
+        `Thank you for your prompt attention.\n\n` +
+        `- The Safachatt Group`
     );
+
     window.open(`https://wa.me/${t.phone}?text=${msg}`);
 }
 
@@ -175,7 +191,7 @@ function render() {
         <img src="${t.photo}">
         <h3>${t.name}</h3>
         <small>Room ${t.room}</small>
-        <small>Due: ${new Date(t.dueDate).toDateString()}</small>
+        <small>Due Day: ${t.dueDay} every month</small>
         <p><strong>₹${total}</strong></p>
         <div class="actions">
           ${!isPaid(t) ? `<button onclick="markPaid(${i})">✔ Paid</button>` : ""}
@@ -193,7 +209,7 @@ function render() {
     populateMonthSelector();
 }
 
-/************ CHARTS (MOBILE SAFE) ************/
+/************ CHARTS ************/
 function drawChart(paid, unpaid) {
     if (chart) chart.destroy();
     chart = new Chart(chartEl, {
