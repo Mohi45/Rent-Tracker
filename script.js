@@ -1,5 +1,5 @@
 /************ CONFIG ************/
-const ADMIN_PIN = "1234";
+const ADMIN_PIN = "SafachattGroup@2022";
 const DEFAULT_AVATAR =
     "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSIzNSIgcj0iMTgiIGZpbGw9IiNjY2MiLz48cmVjdCB4PSIyMCIgeT0iNjAiIHdpZHRoPSI2MCIgaGVpZ2h0PSIzMCIgZmlsbD0iI2NjYyIvPjwvc3ZnPg==";
 
