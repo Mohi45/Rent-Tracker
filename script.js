@@ -193,7 +193,7 @@ function getTotal(t) {
     if (today < due) return total;
 
     const daysLate = Math.floor((today - due) / 86400000);
-    if (daysLate > 0) total += daysLate * 10;
+    //if (daysLate > 0) total += daysLate * 10;
 
     return total;
 }
@@ -220,10 +220,15 @@ function sendWhatsApp(i) {
 
     const phone = t.phone.replace(/\D/g, "");
     const msg = encodeURIComponent(
-        `Hello ${t.name}, PG rent for ${getMonthName(
+        `Hello ${t.name}, hope you are doing well. 😊
+
+This is a gentle reminder that your PG rent for ${getMonthName(
             ACTIVE_MONTH
-        )} is ₹${getTotal(t)}`
+        )} is ₹${getTotal(t)}.
+
+Kindly let me know once the payment is done. Thank you for your cooperation. 🙏`
     );
+
 
     window.open(`https://wa.me/${phone}?text=${msg}`, "_blank");
 }
