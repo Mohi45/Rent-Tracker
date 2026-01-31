@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PG Rent Tracker</title>
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <!-- LOGIN -->
+    <div id="loginScreen" class="login">
+        <h2>🔐 Admin Login</h2>
+        <input type="password" id="pin" placeholder="Enter PIN">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <!-- APP -->
+    <div id="app" style="display:none">
+
+        <header>
+            <h1>🏠 PG Rent Tracker</h1>
+            <div>
+                <button onclick="viewAllHistory()">📊 History</button>
+                <button onclick="toggleTheme()">🌙</button>
+            </div>
+        </header>
+        <div class="month-bar">
+            <label for="monthSelector">📅 Month:</label>
+            <select id="monthSelector" onchange="changeMonth(this.value)"></select>
+        </div>
+        <section class="form">
+            <button onclick="viewAllHistory()">📊 All History</button>
+            <input id="nameInput" placeholder="Tenant Name">
+            <input id="roomInput" placeholder="Room No">
+            <input id="phoneInput" placeholder="WhatsApp Number (91xxxxxxxxxx)">
+            <input id="rentInput" type="number" placeholder="Monthly Rent">
+            <input id="dueDateInput" type="number" min="1" max="31" placeholder="Due Date (1-31)">
+            <input type="file" id="photoInput" accept="image/*">
+            <button onclick="addTenant()">➕ Add Tenant</button>
+        </section>
+
+        <!-- CHARTS -->
+        <section style="padding:15px">
+            <canvas id="chart" height="200"></canvas>
+        </section>
+
+        <section style="padding:15px">
+            <canvas id="historyChart" height="220"></canvas>
+        </section>
+
+        <!-- TENANTS -->
+        <section id="tenantList" class="cards"></section>
+
+        <footer class="summary">
+            <div>Paid ₹<span id="paid">0</span></div>
+            <div>Pending ₹<span id="pending">0</span></div>
+        </footer>
+
+    </div>
+
+    <!-- IMAGE CROP -->
+    <div id="cropModal" class="crop-modal">
+        <div class="crop-box">
+            <img id="cropImage">
+            <button onclick="saveCropped()">Save</button>
+            <button onclick="cancelCrop()">Cancel</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
