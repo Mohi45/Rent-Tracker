@@ -2,15 +2,18 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Safachatt PG for Girls</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PG Rent Tracker</title>
 
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="style.css" />
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <!-- Cropper -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <!-- Charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
@@ -19,7 +22,7 @@
     <!-- LOGIN -->
     <div id="loginScreen" class="login">
         <h2>🔐 Admin Login</h2>
-        <input type="password" id="pin" placeholder="Enter PIN">
+        <input type="password" id="pin" placeholder="Enter PIN" />
         <button onclick="login()">Login</button>
     </div>
 
@@ -28,43 +31,41 @@
 
         <header>
             <h1>🏠 PG Rent Tracker</h1>
-            <div>
-                <button onclick="viewAllHistory()">📊 History</button>
-                <button onclick="toggleTheme()">🌙</button>
-            </div>
+            <button onclick="toggleTheme()">🌙</button>
         </header>
+
         <div class="month-bar">
-            <label for="monthSelector">📅 Month:</label>
+            <label>📅 Month</label>
             <select id="monthSelector" onchange="changeMonth(this.value)"></select>
         </div>
+
+        <!-- FORM -->
         <section class="form">
-            <button onclick="viewAllHistory()">📊 All History</button>
             <input id="nameInput" placeholder="Tenant Name">
             <input id="roomInput" placeholder="Room No">
-            <input id="phoneInput" placeholder="WhatsApp Number (91xxxxxxxxxx)">
+            <input id="phoneInput" placeholder="WhatsApp Number">
             <input id="rentInput" type="number" placeholder="Monthly Rent">
-            <input id="dueDateInput" type="number" min="1" max="31" placeholder="Due Date (1-31)">
+            <input id="dueDateInput" type="date">
             <input type="file" id="photoInput" accept="image/*">
             <button onclick="addTenant()">➕ Add Tenant</button>
         </section>
 
         <!-- CHARTS -->
-        <section style="padding:15px">
-            <canvas id="chart" height="200"></canvas>
+        <section style="height:220px;padding:10px">
+            <canvas id="chart"></canvas>
         </section>
 
-        <section style="padding:15px">
-            <canvas id="historyChart" height="220"></canvas>
+        <section style="height:240px;padding:10px">
+            <canvas id="historyChart"></canvas>
         </section>
 
         <!-- TENANTS -->
         <section id="tenantList" class="cards"></section>
 
         <footer class="summary">
-            <div>Paid ₹<span id="paid">0</span></div>
-            <div>Pending ₹<span id="pending">0</span></div>
+            <div>Paid ₹<span id="paidEl">0</span></div>
+            <div>Pending ₹<span id="pendingEl">0</span></div>
         </footer>
-
     </div>
 
     <!-- IMAGE CROP -->
